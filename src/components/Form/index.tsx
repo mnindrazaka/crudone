@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useState } from 'react'
-import { Button, Grid, Header, Modal } from 'semantic-ui-react'
+import React, { useContext } from 'react'
+import { Button, Grid, Header, Modal, Divider } from 'semantic-ui-react'
 import { CrudoneContext } from '../../contexts/CrudoneContext'
 import { FormInput } from './FormInput'
 import { FormInputError } from './FormInputError'
-import { FormValidator } from './FormValidator'
+import { Formik, Form as FormikForm, ErrorMessage, FormikProps } from 'formik'
 
 interface IProps {
   createTitle?: string
@@ -24,83 +24,18 @@ const defaultProps: IProps = {
 
 export const Form: React.FC<IProps> = props => {
   const context = useContext(CrudoneContext)
-  const [input, setInput] = useState(context.selectedData)
-  const [inputErrors, setInputErrors] = useState({} as any)
 
-  useEffect(() => {
-    if (context.open) {
-      setInput(context.selectedData)
-    } else if (!context.open) {
-      setInput({})
-      setInputErrors({})
-    }
-  }, [context.open])
+  function submit(values: any) {
+    console.log('values', values)
 
-  function removeError(name: string) {
-    const newInputErrors = Object.assign({}, inputErrors)
-    delete newInputErrors[name]
-    setInputErrors(newInputErrors)
-  }
-
-  function changeInput(name: string, value: any) {
-    const newInput = Object.assign({}, input)
-    newInput[name] = value
-    setInput(newInput)
-    removeError(name)
-  }
-
-  function renderFormInputs() {
-    return context.getFormFields().map(field => (
-      <Grid.Column key={field.name}>
-        <FormInput
-          field={field}
-          onChange={value => changeInput(field.name, value)}
-          value={input[field.name]}
-          readOnly={!props.onUpdate && context.isUpdateMode}
-        />
-        <FormInputError errorMessage={inputErrors[field.name]} />
-      </Grid.Column>
-    ))
-  }
-
-  function addError(name: string, message: string) {
-    const newInputErrors = Object.assign({}, inputErrors)
-    newInputErrors[name] = message
-    setInputErrors(newInputErrors)
-  }
-
-  function validateInputs() {
-    let isValid = true
-    context.getFormFields().forEach(field => {
-      if (field.validations)
-        new FormValidator(field, input[field.name]).validate(
-          (name, message) => {
-            addError(name, message)
-            isValid = false
-          }
-        )
-    })
-    return isValid
-  }
-
-  function submit() {
-    if (validateInputs()) {
-      if (context.isUpdateMode) props.onUpdate!(input)
-      else props.onCreate!(input)
-      context.closeForm()
-    }
-  }
-
-  function renderAdditionalAction() {
-    return (
-      props.additionalAction &&
-      props.additionalAction(input, context.isUpdateMode)
-    )
+    if (context.isUpdateMode) props.onUpdate!(values)
+    else props.onCreate!(values)
+    context.closeForm()
   }
 
   function renderSubmitButton() {
     return props.onUpdate || !context.isUpdateMode ? (
-      <Button color="green" content="Simpan" onClick={submit} />
+      <Button color="green" content="Simpan" type="submit" />
     ) : null
   }
 
@@ -112,12 +47,38 @@ export const Form: React.FC<IProps> = props => {
           content="Hapus"
           color="red"
           onClick={() => {
-            props.onDelete!(input)
+            props.onDelete!(context.selectedData)
             context.closeForm()
           }}
         />
       )
     )
+  }
+
+  function renderAdditionalAction() {
+    return (
+      props.additionalAction &&
+      props.additionalAction(context.selectedData, context.isUpdateMode)
+    )
+  }
+
+  function renderFormInputs(form: FormikProps<any>) {
+    return context.getFormFields().map(field => (
+      <Grid.Column key={field.name}>
+        <FormInput
+          field={field}
+          onChange={value => form.setFieldValue(field.name, value)}
+          value={form.values[field.name]}
+          readOnly={!props.onUpdate && context.isUpdateMode}
+        />
+        <ErrorMessage
+          name={field.name}
+          render={errorMessage => (
+            <FormInputError errorMessage={errorMessage} />
+          )}
+        />
+      </Grid.Column>
+    ))
   }
 
   return (
@@ -126,13 +87,20 @@ export const Form: React.FC<IProps> = props => {
         content={context.isUpdateMode ? props.updateTitle : props.createTitle}
       />
       <Modal.Content>
-        <Grid columns="2">{renderFormInputs()}</Grid>
+        <Formik initialValues={context.selectedData} onSubmit={submit}>
+          {form => (
+            <FormikForm>
+              <Grid columns="2">{renderFormInputs(form)}</Grid>
+              <Divider />
+              <Grid padded>
+                {renderSubmitButton()}
+                {renderDeleteButton()}
+                {renderAdditionalAction()}
+              </Grid>
+            </FormikForm>
+          )}
+        </Formik>
       </Modal.Content>
-      <Modal.Actions>
-        {renderAdditionalAction()}
-        {renderDeleteButton()}
-        {renderSubmitButton()}
-      </Modal.Actions>
     </Modal>
   )
 }

@@ -1,11 +1,12 @@
 {
   "name": "crudone",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "crud ? done ! react component for easy crud",
   "main": "lib/index.js",
   "scripts": {
     "build": "rm -rf lib && tsc",
-    "publish-lib": "yarn build && cp package.json lib/package.json && yarn publish lib"
+    "publish-lib": "yarn build && cp package.json lib/package.json && yarn publish lib",
+    "link-lib": "yarn build && cp package.json lib/package.json && cd lib && yarn unlink && yarn link"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,7 @@
   },
   "homepage": "https://github.com/mnindrazaka/crudone#readme",
   "dependencies": {
+    "formik": "^1.5.8",
     "lodash": "^4.17.14",
     "react": "^16.8.6",
     "semantic-ui-css": "^2.4.1",
@@ -36,5 +38,8 @@
     "@types/react": "^16.8.23",
     "@types/validator": "^10.11.1",
     "typescript": "^3.5.3"
+  },
+  "peerDependencies": {
+    "react": "^16.8.6"
   }
 }
