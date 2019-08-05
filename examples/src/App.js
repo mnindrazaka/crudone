@@ -1,24 +1,53 @@
 import React, { Component } from 'react'
 import 'semantic-ui-css/semantic.min.css'
-import { Container, CreateButton, Table, Validation, Form } from 'crudone'
+import { Container, CreateButton, Table, Form } from 'crudone'
+import * as yup from 'yup'
+
+const hobi = [
+  {
+    id: 1,
+    nama: 'berenang'
+  },
+  {
+    id: 2,
+    nama: 'menulis'
+  },
+  {
+    id: 3,
+    nama: 'mewarnai'
+  }
+]
 
 const schema = {
   name: {
-    label: 'Name',
-    validations: [Validation.required]
+    label: 'Name'
   },
   phone: {
-    label: 'Phone',
-    validations: [Validation.numeric, Validation.required]
+    label: 'Phone'
+  },
+  hobi: {
+    label: 'Hobi',
+    type: 'option',
+    optionData: {
+      data: hobi,
+      textKey: 'nama',
+      valueKey: 'id'
+    }
   }
 }
+
+const validationSchema = yup.object().shape({
+  name: yup.string().required(),
+  phone: yup.number().required(),
+  hobi: yup.string().required()
+})
 
 export default class App extends Component {
   state = {
     data: [
-      { id: 1, name: 'aka', phone: '085331247098' },
-      { id: 2, name: 'zaka', phone: '085331247097' },
-      { id: 3, name: 'nindra', phone: '085331247096' }
+      { id: 1, name: 'aka', phone: '085331247098', hobi: hobi[0] },
+      { id: 2, name: 'zaka', phone: '085331247097', hobi: hobi[1] },
+      { id: 3, name: 'nindra', phone: '085331247096', hobi: hobi[2] }
     ]
   }
 
@@ -53,6 +82,7 @@ export default class App extends Component {
             <Table.Display />
           </Table.Container>
           <Form
+            validationSchema={validationSchema}
             onCreate={this.createContact}
             onUpdate={this.updateContact}
             onDelete={this.deleteContact}
