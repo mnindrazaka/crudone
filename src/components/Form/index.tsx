@@ -3,7 +3,13 @@ import { Button, Grid, Header, Modal, Divider } from 'semantic-ui-react'
 import { CrudoneContext } from '../../contexts/CrudoneContext'
 import { FormInput } from './FormInput'
 import { FormInputError } from './FormInputError'
-import { Formik, Form as FormikForm, ErrorMessage, FormikProps } from 'formik'
+import {
+  Formik,
+  Form as FormikForm,
+  ErrorMessage,
+  FieldProps,
+  Field
+} from 'formik'
 
 interface IProps {
   createTitle?: string
@@ -11,6 +17,7 @@ interface IProps {
   onCreate?: (input: any) => void
   onUpdate?: (input: any) => void
   onDelete?: (input: any) => void
+  validationSchema?: any
   additionalAction?: (
     selectedData: any,
     isUpdateMode: boolean
@@ -26,8 +33,6 @@ export const Form: React.FC<IProps> = props => {
   const context = useContext(CrudoneContext)
 
   function submit(values: any) {
-    console.log('values', values)
-
     if (context.isUpdateMode) props.onUpdate!(values)
     else props.onCreate!(values)
     context.closeForm()
@@ -62,15 +67,20 @@ export const Form: React.FC<IProps> = props => {
     )
   }
 
-  function renderFormInputs(form: FormikProps<any>) {
+  function renderFormInputs() {
     return context.getFormFields().map(field => (
       <Grid.Column key={field.name}>
-        <FormInput
-          field={field}
-          onChange={value => form.setFieldValue(field.name, value)}
-          value={form.values[field.name]}
-          readOnly={!props.onUpdate && context.isUpdateMode}
+        <Field
+          name={field.name}
+          render={(formikField: FieldProps) => (
+            <FormInput
+              field={field}
+              formikField={formikField}
+              disabled={!props.onUpdate && context.isUpdateMode}
+            />
+          )}
         />
+
         <ErrorMessage
           name={field.name}
           render={errorMessage => (
@@ -87,10 +97,13 @@ export const Form: React.FC<IProps> = props => {
         content={context.isUpdateMode ? props.updateTitle : props.createTitle}
       />
       <Modal.Content>
-        <Formik initialValues={context.selectedData} onSubmit={submit}>
-          {form => (
+        <Formik
+          initialValues={context.selectedData}
+          onSubmit={submit}
+          validationSchema={props.validationSchema}
+          render={() => (
             <FormikForm>
-              <Grid columns="2">{renderFormInputs(form)}</Grid>
+              <Grid columns="2">{renderFormInputs()}</Grid>
               <Divider />
               <Grid padded>
                 {renderSubmitButton()}
@@ -99,7 +112,7 @@ export const Form: React.FC<IProps> = props => {
               </Grid>
             </FormikForm>
           )}
-        </Formik>
+        />
       </Modal.Content>
     </Modal>
   )

@@ -1,29 +1,32 @@
-import React, { Component, Fragment } from 'react'
-import { Button, Dropdown, DropdownItemProps, Label } from 'semantic-ui-react'
+import React, { FC } from 'react'
+import { Button, DropdownItemProps, Label, Select } from 'semantic-ui-react'
 import { IField } from '../../types'
 
 interface IProps {
-  field: IField
-  onChange: (value: any) => void
+  name: string
+  label: string
   value: any
-  readOnly: boolean
+  disabled: boolean
+  onChange: (value: any) => void
+  onBlur: () => void
+  field: IField
 }
 
-export class InputDropdown extends Component<IProps> {
-  public getValue() {
-    const { value, field } = this.props
+export const InputDropdown: FC<IProps> = props => {
+  function getValue() {
+    const { value, field } = props
     return value ? value[field.optionData!.valueKey] : undefined
   }
 
-  public getOptions(): DropdownItemProps[] {
-    const { optionData } = this.props.field
+  function getOptions(): DropdownItemProps[] {
+    const { optionData } = props.field
     return optionData!.data.map(item => ({
       text: item[optionData!.textKey],
       value: item[optionData!.valueKey]
     }))
   }
 
-  public getObjectValue(
+  function getObjectValue(
     value:
       | string
       | number
@@ -31,40 +34,34 @@ export class InputDropdown extends Component<IProps> {
       | Array<string | number | boolean>
       | undefined
   ) {
-    const { optionData } = this.props.field
+    const { optionData } = props.field
     return optionData!.data.filter(
       item => item[optionData!.valueKey] === value
     )[0]
   }
 
-  public render() {
-    return (
-      <Fragment>
-        <Button.Group fluid>
-          <Label
-            size="large"
-            content={this.props.field.label}
-            style={styles.label}
-          />
-          <Dropdown
-            placeholder={'Pilih ' + this.props.field.label}
-            basic
-            selection
-            search
-            button
-            floating
-            options={this.getOptions()}
-            value={this.getValue()}
-            onChange={(event, { value }) =>
-              this.props.onChange(this.getObjectValue(value))
-            }
-            disabled={this.props.readOnly}
-            style={styles.dropdown}
-          />
-        </Button.Group>
-      </Fragment>
-    )
-  }
+  return (
+    <>
+      <Button.Group fluid>
+        <Label size="large" content={props.label} style={styles.label} />
+        <Select
+          name={props.name}
+          placeholder={'Pilih ' + props.label}
+          basic
+          selection
+          search
+          button
+          floating
+          options={getOptions()}
+          value={getValue()}
+          disabled={props.disabled}
+          style={styles.dropdown}
+          onChange={(event, { value }) => props.onChange(getObjectValue(value))}
+          onBlur={props.onBlur}
+        />
+      </Button.Group>
+    </>
+  )
 }
 
 const styles = {

@@ -20,6 +20,13 @@ export class Container extends Component<IProps, IState> {
   }
 
   public openForm = (selectedData: any, isUpdateMode: boolean) => {
+    if (selectedData === null) {
+      let data: any = {}
+      Object.keys(this.props.schema).forEach(key => {
+        data[key] = ''
+      })
+      selectedData = data
+    }
     this.setState({ open: true, selectedData, isUpdateMode })
   }
 

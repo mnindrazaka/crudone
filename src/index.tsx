@@ -1,4 +1,4 @@
-import { ISchema, Validation } from './types'
+import { ISchema } from './types'
 
-export { ISchema, Validation }
+export { ISchema }
 export * from './components'

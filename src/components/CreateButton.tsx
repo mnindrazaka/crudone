@@ -16,7 +16,7 @@ export const CreateButton: React.FC<IProps> = props => {
     <Button
       content={props.text}
       color="green"
-      onClick={() => context.openForm({}, false)}
+      onClick={() => context.openForm(null, false)}
     />
   )
 }
